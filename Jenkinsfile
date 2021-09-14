@@ -1,6 +1,6 @@
 #!groovy
 pipeline {
-agent any
+agent master
 
 environment {
     APP_NAME = 'devops-hptik'
