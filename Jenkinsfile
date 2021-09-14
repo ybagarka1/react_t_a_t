@@ -24,29 +24,6 @@ parameters {
     booleanParam(defaultValue: false, description: 'Deploy to PROD Environment ?', name: 'DEPLOY_PROD')
 }
 
-
-  triggers {
-    GenericTrigger(
-     genericVariables: [
-      [key: 'ref', value: '$.ref']
-     ],
-
-     causeString: 'Triggered on $ref',
-
-     token: 'abc123',
-     tokenCredentialId: '',
-
-     printContributedVariables: true,
-     printPostContent: true,
-
-     silentResponse: false,
-
-     regexpFilterText: '$ref',
-     regexpFilterExpression: 'refs/heads/' + "${params.BRANCH_NAME}"
-    )
-  }
-
-
    
 stages {
     stage("Initialize") {
@@ -70,11 +47,6 @@ stage('Build') {
         }
 stage('Publish Reports') {
     parallel {
-        stage('Publish FindBugs Report') {
-            steps {
-                step([$class: 'FindBugsPublisher', canComputeNew: false, defaultEncoding: '', excludePattern: '', healthy: '', includePattern: '', pattern: 'target/scala-2.11/findbugs/report.xml', unHealthy: ''])
-            }
-        }
         stage('Publish Junit Report') {
             steps {
                 junit allowEmptyResults: true, testResults: 'target/test-reports/*.xml'
