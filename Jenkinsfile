@@ -7,7 +7,7 @@ environment {
     BUILD_NUMBER = "${env.BUILD_NUMBER}"
     IMAGE_VERSION="v_${BUILD_NUMBER}"
     GIT_URL="git@github.com:ybagarka1/${APP_NAME}.git"
-    GIT_CRED_ID='izleka2IGSTDK+MiYOG3b3lZU9nYxhiJOrxhlaJ1gAA='
+    GIT_CRED_ID='fcfac367-a0cd-45c7-ab53-8d540164a31b'
 }
 
 
@@ -61,11 +61,7 @@ stages {
             }
         }
     }
-stage('Checkout') {
-    steps {
-        git branch: "${params.BRANCH_NAME}", url: "${GIT_URL}"
-    }
-}
+
 stage('Build') {
             steps {
                 echo 'Run coverage and CLEAN UP Before please'
@@ -110,34 +106,17 @@ stage('Publish Reports') {
         }
         stage('SonarQube analysis') {
             steps {
-                sh "/usr/bin/sonar-scanner"
                 sh "echo sonar analysis"
             }
         }
         stage('ArchiveArtifact') {
             steps {
-                archiveArtifacts '**/target/universal/*.zip'
+                archiveArtifacts "**/target/${params.APP_NAME}/*.zip"
             }
         }
     }
 }
 
- stage('Docker Tag & Push') {
-     steps {
-         script {
-             branchName = getCurrentBranch()
-             shortCommitHash = getShortCommitHash()
-             IMAGE_VERSION = "${BUILD_NUMBER}-" + branchName + "-" + shortCommitHash
-             sh 'eval $(aws ecr get-login --no-include-email --region us-west-2)'
-             sh "docker-compose build"
-             sh "docker tag ${REPOURL}/${APP_NAME}:latest ${REPOURL}/${APP_NAME}:${IMAGE_VERSION}"
-             sh "docker push ${REPOURL}/${APP_NAME}:${IMAGE_VERSION}"
-             sh "docker push ${REPOURL}/${APP_NAME}:latest"
-
-             sh "docker rmi ${REPOURL}/${APP_NAME}:${IMAGE_VERSION} ${REPOURL}/${APP_NAME}:latest"
-         }
-     }
- }
 stage('Deploy') {
     parallel {
         stage('Deploy to CI') {
