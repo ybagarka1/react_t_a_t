@@ -5,11 +5,8 @@ agent any
 environment {
     APP_NAME = 'devops-hptik'
     BUILD_NUMBER = "${env.BUILD_NUMBER}"
-    IMAGE_VERSION="v_${BUILD_NUMBER}"
     GIT_URL="git@github.com:ybagarka1/${APP_NAME}.git"
-    GIT_CRED_ID='fcfac367-a0cd-45c7-ab53-8d540164a31b'
 }
-
 
 options {
     buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '10', numToKeepStr: '20'))
@@ -23,7 +20,6 @@ parameters {
     booleanParam(defaultValue: false, description: 'Deploy to UAT Environment ?', name: 'DEPLOY_UAT')
     booleanParam(defaultValue: false, description: 'Deploy to PROD Environment ?', name: 'DEPLOY_PROD')
 }
-
 
   triggers {
     GenericTrigger(
@@ -68,40 +64,11 @@ stage('Build') {
                 sh 'echo build command'
             }
         }
-stage('Publish Reports') {
+stage('Run Tests') {
     parallel {
-        stage('Publish FindBugs Report') {
+        stage('Run Unit Test') {
             steps {
-                step([$class: 'FindBugsPublisher', canComputeNew: false, defaultEncoding: '', excludePattern: '', healthy: '', includePattern: '', pattern: 'target/scala-2.11/findbugs/report.xml', unHealthy: ''])
-            }
-        }
-        stage('Publish Junit Report') {
-            steps {
-                junit allowEmptyResults: true, testResults: 'target/test-reports/*.xml'
-            }
-        }
-        stage('Publish Junit HTML Report') {
-            steps {
-                publishHTML target: [
-                        allowMissing: true,
-                        alwaysLinkToLastBuild: false,
-                        keepAll: true,
-                        reportDir: 'target/reports/html',
-                        reportFiles: 'index.html',
-                        reportName: 'Test Suite HTML Report'
-                ]
-            }
-        }
-        stage('Publish Coverage HTML Report') {
-            steps {
-                publishHTML target: [
-                        allowMissing: true,
-                        alwaysLinkToLastBuild: false,
-                        keepAll: true,
-                        reportDir: 'target/scala-2.11/scoverage-report',
-                        reportFiles: 'index.html',
-                        reportName: 'Code Coverage'
-                ]
+                sh 'echo unit test'
             }
         }
         stage('SonarQube analysis') {
@@ -111,8 +78,8 @@ stage('Publish Reports') {
         }
         stage('ArchiveArtifact') {
             steps {
-                sh "mkdir -p /target/ && touch ${params.APP_NAME}.zip"
-                archiveArtifacts "**/target/${params.APP_NAME}/*.zip"
+                sh "echo archive artifact"
+                // archiveArtifacts "**/target/${params.APP_NAME}/*.zip"
             }
         }
     }
