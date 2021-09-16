@@ -1,7 +1,8 @@
-// pipeline to test the trigger
+#!groovy
 pipeline {
-  agent any
-  environment {
+agent any
+
+environment {
     APP_NAME = 'devops-hptik'
     BUILD_NUMBER = "${env.BUILD_NUMBER}"
     IMAGE_VERSION="v_${BUILD_NUMBER}"
@@ -9,19 +10,21 @@ pipeline {
     GIT_CRED_ID='fcfac367-a0cd-45c7-ab53-8d540164a31b'
 }
 
+
 options {
     buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '10', numToKeepStr: '20'))
     timestamps()
     retry(3)
     timeout time:10, unit:'MINUTES'
 }
-
-  parameters {
+parameters {
     string(defaultValue: "master", description: 'Branch Specifier', name: 'BRANCH_NAME')
     booleanParam(defaultValue: false, description: 'Deploy to QA Environment ?', name: 'DEPLOY_QA')
     booleanParam(defaultValue: false, description: 'Deploy to UAT Environment ?', name: 'DEPLOY_UAT')
     booleanParam(defaultValue: false, description: 'Deploy to PROD Environment ?', name: 'DEPLOY_PROD')
 }
+
+
   triggers {
     GenericTrigger(
      genericVariables: [
@@ -42,6 +45,9 @@ options {
      regexpFilterExpression: 'refs/heads/' + "${params.BRANCH_NAME}"
     )
   }
+
+
+   
 stages {
     stage("Initialize") {
         steps {
@@ -105,6 +111,7 @@ stage('Publish Reports') {
         }
         stage('ArchiveArtifact') {
             steps {
+                sh "mkdir -p /target/ && touch ${params.APP_NAME}.zip"
                 archiveArtifacts "**/target/${params.APP_NAME}/*.zip"
             }
         }
@@ -243,8 +250,4 @@ def notifyBuild(String buildStatus = 'STARTED') {
         color = 'RED'
         colorCode = '#FF0000'
     }
-}
-
-
-
 }
