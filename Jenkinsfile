@@ -1,3 +1,4 @@
+// pipeline to test the trigger
 pipeline {
   agent any
   parameters {
